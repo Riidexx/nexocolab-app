@@ -4,11 +4,10 @@ import { supabase } from "../../lib/supabase";
 
 type Request = {
   id: string;
-  item_id: string;
-  requester_id: string;
-  owner_id: string;
   status: string;
-  created_at: string;
+  items: {
+    title: string;
+  };
 };
 
 export default function RequestsScreen() {
@@ -17,17 +16,23 @@ export default function RequestsScreen() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const loadRequests = async (uid: string) => {
-    // 📥 Recibidas
+    // 📥 Recibidas (soy dueño)
     const { data: receivedData } = await supabase
       .from("requests")
-      .select("*")
+      .select(`
+        *,
+        items ( title )
+      `)
       .eq("owner_id", uid)
       .order("created_at", { ascending: false });
 
-    // 📤 Enviadas
+    // 📤 Enviadas (soy solicitante)
     const { data: sentData } = await supabase
       .from("requests")
-      .select("*")
+      .select(`
+        *,
+        items ( title )
+      `)
       .eq("requester_id", uid)
       .order("created_at", { ascending: false });
 
@@ -68,6 +73,7 @@ export default function RequestsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.card}>
+              <Text style={styles.title}>{item.items?.title}</Text>
               <Text style={styles.meta}>Estado: {item.status}</Text>
             </View>
           )}
@@ -84,6 +90,7 @@ export default function RequestsScreen() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.card}>
+              <Text style={styles.title}>{item.items?.title}</Text>
               <Text style={styles.meta}>Estado: {item.status}</Text>
             </View>
           )}
@@ -106,6 +113,11 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
     marginBottom: 8,
+  },
+  title: {
+  color: "white",
+  fontSize: 16,
+  fontWeight: "700",
   },
   meta: { color: "#cbd5e1" },
   empty: { color: "#94a3b8", marginBottom: 10 },
