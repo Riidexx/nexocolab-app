@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
 
 type Item = {
@@ -7,47 +7,67 @@ type Item = {
   title: string;
   category: string;
   user_id: string;
-  created_at: string;
 };
 
 export default function HomeScreen() {
   const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const loadItems = async () => {
-    console.log("Loading items...");
-
     const { data, error } = await supabase
       .from("items")
       .select("*")
       .order("created_at", { ascending: false });
 
-    console.log("DATA:", data);
-    console.log("ERROR:", error);
-
     if (!error && data) {
       setItems(data);
     }
+  };
 
-    setLoading(false);
+  const requestItem = async (item: Item) => {
+    if (!userId) {
+      Alert.alert("Error", "Debes iniciar sesión");
+      return;
+    }
+
+    if (item.user_id === userId) {
+      Alert.alert("Error", "No puedes solicitar tu propio objeto");
+      return;
+    }
+
+    const { error } = await supabase.from("requests").insert([
+      {
+        item_id: item.id_uuid,
+        owner_id: item.user_id,
+      },
+    ]);
+
+    if (error) {
+      Alert.alert("Error", error.message);
+      return;
+    }
+
+    Alert.alert("Listo", "Solicitud enviada");
   };
 
   useEffect(() => {
     const init = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
-      if (sessionData.session) {
-        console.log("Session detected:", sessionData.session.user.email);
-        await loadItems();
-      } else {
-        console.log("No active session");
-        setLoading(false);
+      const uid = sessionData.session?.user.id ?? null;
+      setUserId(uid);
+      if (uid) {
+        loadItems();
       }
     };
 
     init();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(() => {
-      loadItems();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const uid = session?.user.id ?? null;
+      setUserId(uid);
+      if (uid) {
+        loadItems();
+      }
     });
 
     return () => {
@@ -57,26 +77,23 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {loading ? (
-        <Text style={styles.empty}>Cargando...</Text>
-      ) : items.length === 0 ? (
-        <Text style={styles.empty}>No hay objetos publicados aún</Text>
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id_uuid}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.meta}>Categoría: {item.category}</Text>
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id_uuid}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.title}>{item.title}</Text>
+            <Text style={styles.meta}>Categoría: {item.category}</Text>
 
-              <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Solicitar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      )}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => requestItem(item)}
+            >
+              <Text style={styles.buttonText}>Solicitar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -99,10 +116,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: { color: "white", fontWeight: "700" },
-  empty: {
-    color: "#cbd5e1",
-    textAlign: "center",
-    marginTop: 40,
-    fontSize: 16,
-  },
 });
