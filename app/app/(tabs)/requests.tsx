@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity
+} from "react-native";
 import { supabase } from "../../lib/supabase";
 
 type Request = {
@@ -14,6 +20,22 @@ export default function RequestsScreen() {
   const [received, setReceived] = useState<Request[]>([]);
   const [sent, setSent] = useState<Request[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+
+  const updateStatus = async (requestId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from("requests")
+      .update({ status: newStatus })
+      .eq("id", requestId);
+
+    if (error) {
+      console.log("Update error:", error);
+      return;
+    }
+
+    if (userId) {
+      loadRequests(userId); // refrescar lista
+    }
+  };
 
   const loadRequests = async (uid: string) => {
     // 📥 Recibidas (soy dueño)
@@ -75,6 +97,24 @@ export default function RequestsScreen() {
             <View style={styles.card}>
               <Text style={styles.title}>{item.items?.title}</Text>
               <Text style={styles.meta}>Estado: {item.status}</Text>
+
+              {item.status === "pending" && (
+                <View style={styles.actions}>
+                  <TouchableOpacity
+                    style={styles.approve}
+                    onPress={() => updateStatus(item.id, "approved")}
+                  >
+                    <Text style={styles.buttonText}>Aprobar</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.reject}
+                    onPress={() => updateStatus(item.id, "rejected")}
+                  >
+                    <Text style={styles.buttonText}>Rechazar</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
         />
@@ -118,6 +158,29 @@ const styles = StyleSheet.create({
   color: "white",
   fontSize: 16,
   fontWeight: "700",
+  },
+  actions: {
+    flexDirection: "row",
+    marginTop: 8,
+    gap: 8,
+  },
+  approve: {
+    backgroundColor: "#16a34a",
+    padding: 8,
+    borderRadius: 6,
+    flex: 1,
+    alignItems: "center",
+  },
+  reject: {
+    backgroundColor: "#dc2626",
+    padding: 8,
+    borderRadius: 6,
+    flex: 1,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "700",
   },
   meta: { color: "#cbd5e1" },
   empty: { color: "#94a3b8", marginBottom: 10 },
