@@ -10,6 +10,7 @@ import { supabase } from "../../lib/supabase";
 
 type Request = {
   id: string;
+  item_id: string; // 👈 agregar esto
   status: string;
   items: {
     title: string;
@@ -21,19 +22,35 @@ export default function RequestsScreen() {
   const [sent, setSent] = useState<Request[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
 
-  const updateStatus = async (requestId: string, newStatus: string) => {
+  const updateStatus = async (requestId: string, newStatus: string, itemId: string) => {
+    console.log("Updating request:", requestId, newStatus);
+    console.log("Item to update:", itemId);
+
     const { error } = await supabase
       .from("requests")
       .update({ status: newStatus })
       .eq("id", requestId);
 
     if (error) {
-      console.log("Update error:", error);
+      console.log("Request update error:", error);
       return;
     }
 
+    if (newStatus === "approved") {
+      const { error: itemError } = await supabase
+        .from("items")
+        .update({ available: false })
+        .eq("id_uuid", itemId);
+
+      if (itemError) {
+        console.log("Item update error:", itemError);
+      } else {
+        console.log("Item marked unavailable");
+      }
+    }
+
     if (userId) {
-      loadRequests(userId); // refrescar lista
+      loadRequests(userId);
     }
   };
 
@@ -102,14 +119,14 @@ export default function RequestsScreen() {
                 <View style={styles.actions}>
                   <TouchableOpacity
                     style={styles.approve}
-                    onPress={() => updateStatus(item.id, "approved")}
+                    onPress={() => updateStatus(item.id, "approved", item.item_id)}
                   >
                     <Text style={styles.buttonText}>Aprobar</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.reject}
-                    onPress={() => updateStatus(item.id, "rejected")}
+                    onPress={() => updateStatus(item.id, "rejected", item.item_id)}
                   >
                     <Text style={styles.buttonText}>Rechazar</Text>
                   </TouchableOpacity>

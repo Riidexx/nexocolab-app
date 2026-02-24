@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 type Item = {
   id_uuid: string;
   title: string;
   category: string;
   user_id: string;
+  available: boolean;
 };
 
 export default function HomeScreen() {
@@ -17,6 +20,7 @@ export default function HomeScreen() {
     const { data, error } = await supabase
       .from("items")
       .select("*")
+      .eq("available", true)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -25,8 +29,8 @@ export default function HomeScreen() {
   };
 
   const requestItem = async (item: Item) => {
-    if (!userId) {
-      Alert.alert("Error", "Debes iniciar sesión");
+    if (!item.available) {
+      Alert.alert("No disponible", "Este objeto ya fue prestado");
       return;
     }
 
@@ -50,13 +54,15 @@ export default function HomeScreen() {
     Alert.alert("Listo", "Solicitud enviada");
   };
 
-  useEffect(() => {
+useFocusEffect(
+  useCallback(() => {
     const init = async () => {
       const { data: sessionData } = await supabase.auth.getSession();
       const uid = sessionData.session?.user.id ?? null;
       setUserId(uid);
+
       if (uid) {
-        loadItems();
+        await loadItems();
       }
     };
 
@@ -71,9 +77,10 @@ export default function HomeScreen() {
     });
 
     return () => {
-      listener.subscription.unsubscribe();
-    };
-  }, []);
+          // cleanup opcional
+        };
+      }, [])
+    );
 
   return (
     <View style={styles.container}>
