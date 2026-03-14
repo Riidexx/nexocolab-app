@@ -22,6 +22,32 @@ export default function PublishScreen() {
   };
 
   const publish = async () => {
+
+    let imageUrl = null;
+    if (image) {
+      const fileName = `${Date.now()}.jpg`;
+
+      const response = await fetch(image);
+      const arrayBuffer = await response.arrayBuffer();
+
+      const { data, error } = await supabase.storage
+        .from("items")
+        .upload(fileName, arrayBuffer, {
+          contentType: "image/jpeg",
+        });
+
+      if (error) {
+        console.log("Error subiendo imagen:", error);
+      } else {
+        const { data: publicUrl } = supabase.storage
+          .from("items")
+          .getPublicUrl(fileName);
+
+        imageUrl = publicUrl.publicUrl;
+      }
+    }
+
+
     if (!title.trim() || !category.trim()) {
       Alert.alert("Falta info", "Completa título y categoría");
       return;
@@ -43,6 +69,7 @@ export default function PublishScreen() {
         title: title.trim(),
         category: category.trim(),
         user_id: userId,
+        image_url: imageUrl,
       },
     ]);
 
@@ -79,7 +106,7 @@ export default function PublishScreen() {
         placeholderTextColor="#94a3b8"
         style={styles.input}
       />
-      
+
       <TouchableOpacity onPress={pickImage} style={styles.button}>
         <Text style={styles.buttonText}>Seleccionar imagen</Text>
       </TouchableOpacity>
