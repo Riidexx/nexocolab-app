@@ -1,11 +1,25 @@
 import { useState } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "react-native";
 
 export default function PublishScreen() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [loading, setLoading] = useState(false);
+  const [image, setImage] = useState<string | null>(null);
+
+    const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   const publish = async () => {
     if (!title.trim() || !category.trim()) {
@@ -65,6 +79,22 @@ export default function PublishScreen() {
         placeholderTextColor="#94a3b8"
         style={styles.input}
       />
+      
+      <TouchableOpacity onPress={pickImage} style={styles.button}>
+        <Text style={styles.buttonText}>Seleccionar imagen</Text>
+      </TouchableOpacity>
+
+      {image && (
+        <Image
+          source={{ uri: image }}
+          style={{
+            width: "100%",
+            height: 200,
+            borderRadius: 10,
+            marginTop: 10,
+          }}
+        />
+      )}
 
       <TouchableOpacity style={styles.button} onPress={publish} disabled={loading}>
         <Text style={styles.buttonText}>{loading ? "Publicando..." : "Publicar"}</Text>
