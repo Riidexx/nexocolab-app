@@ -1,102 +1,111 @@
 # NexoColab
 
-App móvil P2P para compartir objetos subutilizados (MVP académico).
+Aplicación móvil P2P para compartir **objetos subutilizados** dentro de una comunidad.
 
-Proyecto desarrollado con React Native + Expo.
+Proyecto desarrollado como **MVP académico** utilizando **React Native + Expo + Supabase**.
 
 ---
 
-## 🚀 Requisitos
+# 🚀 Requisitos
 
-Antes de empezar asegúrate de tener:
+Antes de ejecutar el proyecto asegúrate de tener instalado:
 
-- Node.js LTS\
-- Git\
+- Node.js LTS
+- Git
+- Visual Studio Code (recomendado)
 - Expo Go (instalado en tu celular Android)
 
 ---
 
-## ▶️ Ejecutar el proyecto
+# ⚙️ Configuración del entorno
 
-Clona el repositorio:
+Clonar el repositorio:
 
 git clone https://github.com/Riidexx/nexocolab-app.git
 
-Entra al proyecto:
+Entrar al proyecto:
 
 cd nexocolab-app/app
 
-Instala dependencias:
+Instalar dependencias:
 
 npm install
 
-Inicia Expo (modo tunnel recomendado):
+---
 
-npx expo start --tunnel
+# ▶️ Ejecutar la aplicación
+
+Iniciar Expo:
+
+npm run start
 
 Luego:
 
-- Abre Expo Go en tu celular
-- Escanea el QR
+1. Abrir **Expo Go** en el celular
+2. Escanear el **QR**
+3. La aplicación se cargará automáticamente
 
 ---
 
-## 📱 Pantallas del MVP
+# 📱 Funcionalidades del MVP
 
-Actualmente el MVP incluye:
+El MVP actualmente permite:
 
-Home\
-Listado de objetos subutilizados (mock).
-
-Publicar\
-Formulario simple para publicar un objeto (mock).
-
-Solicitudes\
-Listado de préstamos/solicitudes (mock).
-
-Perfil\
-Información de usuario + login/logout simulado.
+- Registro e inicio de sesión de usuarios
+- Publicación de objetos
+- Visualización de objetos disponibles
+- Envío de solicitudes de préstamo
+- Gestión de solicitudes (aprobar / rechazar)
+- Actualización automática de disponibilidad de objetos
 
 ---
 
-## 📁 Estructura básica
+# 🧱 Arquitectura
 
-app/ └── app/(tabs) ├── home.tsx ├── publish.tsx ├── requests.tsx ├──
-profile.tsx └── \_layout.tsx
+Frontend:
+React Native + Expo
 
----
+Backend:
+Supabase
 
-## 🧪 Estado actual
+Base de datos:
+PostgreSQL
 
-Todo funciona con datos simulados (mock).
-
-Pendiente para siguientes sprints:
-
-- Autenticación real
-- Backend (Supabase/Firebase)
-- Subida de imágenes
-- Persistencia de objetos
-- Sistema de calificaciones
-- Solicitudes reales
+Seguridad:
+Row Level Security (RLS)
 
 ---
 
-## 👥 Trabajo colaborativo
+# 📁 Estructura del proyecto
 
-Reglas:
+app/
+└── app/(tabs)
+├── home.tsx
+├── publish.tsx
+├── requests.tsx
+├── profile.tsx
+└── _layout.tsx
 
-- No trabajar directo en main
-- Usar ramas (feature/...)
-- Hacer Pull Request hacia dev
-- 1 aprobación mínima
-
----
-
-## 🎯 Objetivo del proyecto
-
-Crear una plataforma P2P que permita compartir objetos subutilizados de
-forma segura y colaborativa.
+lib/
+└── supabase.ts
 
 ---
 
-MVP desarrollado como proyecto académico.
+# 👥 Trabajo colaborativo
+
+Reglas del repositorio:
+
+- No trabajar directamente en `main`
+- Crear ramas tipo `feature/...`
+- Hacer Pull Request hacia `dev`
+- Al menos una aprobación antes de merge
+
+---
+
+# 🎯 Objetivo del proyecto
+
+Desarrollar una plataforma P2P que permita a los usuarios **prestar y solicitar objetos de forma segura**, fomentando el uso de recursos subutilizados dentro de comunidades locales.
+
+---
+
+Proyecto desarrollado como parte del **Semillero de Investigación SIIANTEC – Ingeniería de Sistemas (TEINCO)**.
